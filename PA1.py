@@ -22,7 +22,7 @@ def process_file(input_file, output_file, value, saturation=False):
         # audio2.min(): -49849 / audio2.max(): 102316
 
         # 오디오 증폭
-        audio_data = (audio_data.astype(np.float32) * 5).astype(np.int32)
+        audio_data = (audio_data.astype(np.float32) * 2.5).astype(np.int32)
         modified_audio_data = audio_data + value  # 샘플 값에 4096 더하기
 
         # saturation 연산
@@ -35,6 +35,14 @@ def process_file(input_file, output_file, value, saturation=False):
         with wave.open(output_file, 'wb') as wav_out:
             wav_out.setparams(params)
             wav_out.writeframes(modified_frames)
+            
+            
+def save_pcm(wav_file, pcm_file):
+    with wave.open(wav_file, 'rb') as wav_in:
+        params = wav_in.getparams()
+        frames = wav_in.readframes(params.nframes)
+        audio_data = np.frombuffer(frames, dtype=np.int16)
+        audio_data.tofile(pcm_file)
 
 
 input_file = './data/a.wav'
@@ -42,7 +50,11 @@ output_file_no_saturation = './output/no_saturation.wav'  # saturation 처리 �
 output_file_saturation = './output/saturation.wav'  # saturation 처리
 value = 4096
     
+# 입력 파일을 saturation 여부에 따라 처리
 process_file(input_file, output_file=output_file_no_saturation, value=value, saturation=False)
 process_file(input_file, output_file=output_file_saturation, value=value, saturation=True)
 
-
+# PCM 파일 저장
+save_pcm(input_file, './data/a.pcm')
+save_pcm(output_file_no_saturation, './output/no_saturation.pcm')
+save_pcm(output_file_saturation, './output/saturation.pcm')
